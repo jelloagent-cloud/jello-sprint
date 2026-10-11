@@ -63,6 +63,9 @@ button{font:inherit;color:inherit;letter-spacing:inherit}
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
 .g-label{position:relative;z-index:6;font-size:clamp(30px,3.4vw,46px);font-weight:600;letter-spacing:-.025em;color:#fff;text-shadow:0 2px 18px rgba(0,0,0,.35);transition:opacity .25s,transform .4s var(--ease)}
 .intro.go .g-label{opacity:0;transform:scale(.96)}
+.intro.wait .g-label{animation:breathe 1.3s ease-in-out infinite}
+.intro.wait .g-blob{animation-duration:2.4s}
+@keyframes breathe{50%{opacity:.5}}
 .intro.go .glass{transform:scale(1.06);transition:transform .5s cubic-bezier(.34,1.4,.64,1)}
 /* the pill grows into the page: a clip-path from the button's own rounded rectangle to the full screen */
 .i-wipe{position:absolute;inset:0;z-index:8;pointer-events:none;visibility:hidden;
@@ -407,6 +410,7 @@ function render(){
 
   // leader block — always first place
   const any=a&&a.points>0;
+  document.querySelector('.lc-eye').textContent=any?'In the lead':'Lights out';
   const words=(any?a.name:'Grid set').split(' '),first=words[0],rest=words.slice(1).join(' ');
   $('#leadName').innerHTML=rest?`<span>${esc(first)}</span><span>${esc(rest)}<i class="chk"></i></span>`:`<span>${esc(first)}<i class="chk"></i></span>`;
   $('#leadSub').textContent=any?`${plural(a.batches,'batch')}. ${a.clean} clean. ${b&&b.points>0?`Out in front by ${fmt1(a.points-b.points)}.`:'Out in front.'}`:'First batch to Ready to Launch takes the lead.';
@@ -417,7 +421,7 @@ function render(){
   // standings list
   $('#lanes').innerHTML=eds.map((e,i)=>`<div class="lane" style="--lc:${LAY.col[i][0]}">
      <button class="lane-btn" aria-expanded="false">
-       <span class="rank">${i+1}</span>
+       <span class="rank">${e.points>0?i+1:'–'}</span>
        <span class="nm">${esc(e.name)}<small>${plural(e.batches,'batch')} · ${e.clean} clean${e.avgTatH!=null?` · Ø ${fmt1(e.avgTatH/24)} days`:''}</small></span>
        <span class="run" aria-hidden="true"><span class="trail"></span><span class="dot"></span><span class="fin"></span></span>
        <span class="pts"><span data-to="${e.points}">0.0</span><small>points</small></span>
@@ -510,7 +514,7 @@ function makeCar(body,num){
 }
 
 /* ───────── the race, from above ───────── */
-let introOn=true,stageStart=()=>{};
+let introOn=true,stageStart=()=>{},dataReady=false,wantGo=false,goNow=()=>{};
 function initStage(){
   const box=$('#race'),cv=$('#stage'),ctx=cv.getContext('2d'),sc=document.createElement('canvas'),sx=sc.getContext('2d'),tip=$('#tip');
   const eds=D.editors,N=eds.length;if(!N)return;
@@ -520,13 +524,14 @@ function initStage(){
   const laneX=l=>(l+.5-N/2)*LW;
   const cars=order.map((rank,lane)=>{const e=eds[rank],[lc,cc]=col[rank];
     return{rank,lane,e,lc,cc,x:laneX(lane),ty:maxP>0?-(e.points/maxP)*TRACK*.9:0,y:150,run:0,ph:Math.random()*6.28,spr:makeCar(cc,rank+1),
-      label:`P${rank+1}   ${e.name.split(' ')[0].toUpperCase()}`,ink:lum(lc)>.6?'rgba(29,29,31,.8)':'rgba(255,255,255,.94)',seed:[0,1,2,3].map(()=>Math.random())}});
+      label:e.points>0?`P${rank+1}   ${e.name.split(' ')[0].toUpperCase()}`:e.name.split(' ')[0].toUpperCase(),ink:lum(lc)>.6?'rgba(29,29,31,.8)':'rgba(255,255,255,.94)',seed:[0,1,2,3].map(()=>Math.random())}});
   let W=0,H=0,dpr=1,narrow=false,vis=true,last=performance.now(),intro0=1e12;
   const lerp=(a,b,t)=>a+(b-a)*t,ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
   // camera: overview (tilted, poster-like) ↔ focus (straight, zoomed on one car)
   let mode=0,mFrom=0,mT0=-1e9,fNow=0,sel=C0,camX=cars[C0].x,camY=0,curS=1;
-  const OV=()=>narrow?{th:.16,k:0,s:Math.max(.5,Math.min(.9,W/820)),Px:0,Py:-TRACK*.42,Ax:W*.5,Ay:H*.68}
-                    :{th:.38,k:.34,s:Math.max(.6,Math.min(1.05,Math.min(W/1440,H/760)*.93)),Px:0,Py:-TRACK*.47,Ax:W*.325,Ay:H*.5};
+  const onGrid=maxP<=0;   // nobody has scored yet: frame the starting grid instead of the (empty) race
+  const OV=()=>narrow?{th:.16,k:0,s:Math.max(.5,Math.min(.9,W/820)),Px:0,Py:onGrid?CL*.2:-TRACK*.42,Ax:W*.5,Ay:onGrid?H*.62:H*.68}
+                    :{th:.38,k:.34,s:Math.max(.6,Math.min(1.05,Math.min(W/1440,H/760)*.93)),Px:0,Py:onGrid?CL*.2:-TRACK*.47,Ax:W*.325,Ay:onGrid?H*.56:H*.5};
   const FO=()=>({th:0,k:0,s:Math.max(1.6,Math.min(3.5,H*.5/CL)),Px:camX,Py:camY,Ax:W/2,Ay:H*.42});
   function params(f){const a=OV(),b=FO(),o={};for(const k in a)o[k]=lerp(a[k],b[k],f);o.s=Math.exp(lerp(Math.log(a.s),Math.log(b.s),f));return o}
   function T(x,y,p){const dx=x-p.Px,dy=y-p.Py,c=Math.cos(p.th),sn=Math.sin(p.th);let X=(dx*c-dy*sn)*p.s,Y=(dx*sn+dy*c)*p.s;if(Y<0)X-=p.k*Y*Y/H;return[p.Ax+X,p.Ay+Y]}
@@ -664,7 +669,8 @@ void main(){
   function updUI(){
     const c=cars[sel],e=c.e,r=c.rank;
     $('#fPos').textContent=`P${r+1}`;$('#fTop').style.setProperty('--lc',c.lc);
-    $('#fTag').textContent=r===0?(e.points>0?'In the lead':'On the grid'):`${fmt1(eds[r-1].points-e.points)} behind P${r}`;
+    $('#fTag').textContent=!(e.points>0)?(maxP>0?'No batch yet':'On the grid'):r===0?'In the lead':`${fmt1(eds[r-1].points-e.points)} behind P${r}`;
+    $('#fPos').textContent=e.points>0?`P${r+1}`:'–';
     $('#fName').textContent=e.name;countUp($('#fPts'),e.points,700);
     $('#fFacts').textContent=`${plural(e.batches,'batch')} · ${e.clean} clean${e.avgTatH!=null?` · Ø ${fmt1(e.avgTatH/24)} days`:''}`;
     $('#fPrev').disabled=sel===0;$('#fNext').disabled=sel===N-1;
@@ -701,8 +707,11 @@ function initIntro(){
   const intro=$('#intro'),btn=$('#enter');
   document.body.classList.add('locked');try{history.scrollRestoration='manual'}catch(e){}jumpTop();
   intro.addEventListener('pointermove',e=>{const r=btn.getBoundingClientRect();btn.style.setProperty('--bx',Math.max(-10,Math.min(110,(e.clientX-r.left)/r.width*100)).toFixed(1)+'%')});
+  const label=btn.querySelector('.g-label');
   const go=()=>{
     if(!introOn||intro.classList.contains('go'))return;
+    if(!dataReady){wantGo=true;intro.classList.add('wait');label.textContent='Loading the race…';return}
+    intro.classList.remove('wait');
     const r=btn.getBoundingClientRect(),w=$('#wipe'),W0=innerWidth,H0=innerHeight;
     [['--ct',r.top],['--cr',W0-r.right],['--cb',H0-r.bottom],['--cl',r.left],['--crad',r.height/2]].forEach(([k,v])=>w.style.setProperty(k,v.toFixed(1)+'px'));
     w.style.setProperty('--wx',btn.style.getPropertyValue('--bx')||'34%');
@@ -710,21 +719,26 @@ function initIntro(){
     intro.classList.add('go');
     setTimeout(()=>{introOn=false;stageStart();intro.classList.add('out');document.body.classList.remove('locked');race()},RM?0:950);
   };
-  btn.addEventListener('click',go);
+  goNow=go;btn.addEventListener('click',go);
   addEventListener('keydown',e=>{if(introOn&&(e.key==='Enter'||e.key===' ')&&document.activeElement!==btn){e.preventDefault();go()}});
   addEventListener('wheel',e=>{if(introOn&&e.deltaY>25)go()},{passive:true});
   $('#home').addEventListener('click',e=>{e.preventDefault();if(introOn)return;
-    introOn=true;document.body.classList.add('locked');intro.classList.remove('out');
+    introOn=true;wantGo=false;label.textContent='Enter the race';document.body.classList.add('locked');intro.classList.remove('out');
     requestAnimationFrame(()=>intro.classList.remove('go'));
     setTimeout(jumpTop,RM?0:500)});
 }
 
+/* The start button works right away; standings load in the background (ClickUp can take ~10 s on a cold cache).
+   Tapping before they arrive shows "Loading the race…" on the button and opens the moment they land. */
 async function boot(){
+  initIntro();tick();setInterval(tick,1000);
   try{
-    const r=await fetch('/api/leaderboard?sprint=1&k='+Math.floor(Date.now()/60000));
+    const ctl='AbortController' in window?new AbortController():null,to=setTimeout(()=>ctl&&ctl.abort(),25000);
+    const r=await fetch('/api/leaderboard?sprint=1',ctl?{signal:ctl.signal}:{});clearTimeout(to);
     if(r.ok){const j=await r.json();if(j&&j.editors&&j.sprint){j.editors=j.editors.map(e=>({...e,list:e.list||[]}));D=j}}
   }catch(e){}
-  render();initIntro();tick();setInterval(tick,1000);
+  render();dataReady=true;tick();
+  if(wantGo)goNow();
 }
 boot();
 })();
