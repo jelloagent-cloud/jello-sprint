@@ -548,6 +548,8 @@ const DEMO=(()=>{
     'Ben Schlueter':[B('Batch#1100','AI TH Fusion',1,0)],
     'Daniyal':[B('Garlic Batch#43','Animation',1.5,2)],
     'Jaafar Bekri':[B('Batch#1112','Yapping UGC',1,1)],
+    'Luca':[B('Batch#1115','Text Ad',1,0)],
+    'Krish':[],
   };
   const eds=Object.entries(raw).map(([name,l])=>{
     const list=l.map(b=>{const w=WT[b.format.toLowerCase()],q=Q(b.revs);return{...b,weight:w,quality:q,points:r2(w*b.vc*q)}});
@@ -902,8 +904,10 @@ function initStage(){
   // camera: overview (tilted, poster-like) ↔ focus (straight, zoomed on one car)
   let mode=0,mFrom=0,mT0=-1e9,fNow=0,sel=C0,camX=cars[C0].x,camY=0,curS=1;
   const onGrid=maxP<=0;   // nobody has scored yet: frame the starting grid instead of the (empty) race
+  const FITN=Math.min(1,Math.pow(11/N,.75));
   const OV=()=>narrow?{th:.16,k:0,s:Math.max(.5,Math.min(.9,W/820)),Px:0,Py:onGrid?CL*.2:-TRACK*.42,Ax:W*.5,Ay:onGrid?H*.62:H*.68}
-                    :{th:.38,k:.34,s:Math.max(.55,Math.min(1,Math.min(W/1440,H/760)*(onGrid?.93:.82))),Px:0,Py:onGrid?CL*.2:-TRACK*.55,Ax:W*.33,Ay:H*.56};
+                    :{th:.38,k:.34,s:Math.max(.5,Math.min(1,Math.min(W/1440,H/760)*(onGrid?.93:.82)*FITN)),Px:0,Py:onGrid?CL*.2:-TRACK*.55,Ax:W*(N>11?.31:.33),Ay:H*.56};
+  // more than 11 editors: shrink the overview a touch so the track stays clear of the leader block
   const FO=()=>({th:0,k:0,s:Math.max(1.6,Math.min(3.5,H*.5/CL)),Px:camX,Py:camY,Ax:W/2,Ay:H*.42});
   function params(f){const a=OV(),b=FO(),o={};for(const k in a)o[k]=lerp(a[k],b[k],f);o.s=Math.exp(lerp(Math.log(a.s),Math.log(b.s),f));return o}
   function T(x,y,p){const dx=x-p.Px,dy=y-p.Py,c=Math.cos(p.th),sn=Math.sin(p.th);let X=(dx*c-dy*sn)*p.s,Y=(dx*sn+dy*c)*p.s;if(Y<0)X-=p.k*Y*Y/H;return[p.Ax+X,p.Ay+Y]}
