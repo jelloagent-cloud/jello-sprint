@@ -185,6 +185,9 @@ html.night .mycar{background:rgba(255,255,255,.12)}
 .nav-right{display:flex;gap:12px;align-items:center;color:var(--ink2);font-variant-numeric:tabular-nums}
 .tag{font-size:11px;padding:2px 8px;border-radius:980px;background:rgba(0,0,0,.06);color:var(--ink2)}
 .tag.live{background:rgba(48,209,88,.14);color:#1a7f37}
+/* link back to the Editing Hub; on wide screens the nav links carry it instead */
+.hubtag{font-size:11px;font-weight:600;padding:2px 9px;border-radius:980px;background:rgba(0,0,0,.06);color:var(--ink);white-space:nowrap}.hubtag:hover{text-decoration:none;background:rgba(0,0,0,.1)}
+html.night .hubtag{background:rgba(255,255,255,.1);color:#f5f5f7}@media (min-width:834px){.hubtag{display:none}}
 
 /* ───────── RACE (top-down) ───────── */
 .stage{position:relative;height:max(600px,calc(100vh - 44px));background:var(--mist);overflow:hidden;scroll-margin-top:44px}
@@ -432,8 +435,8 @@ html.night .run .dot{box-shadow:0 0 0 4px rgba(255,255,255,.04),0 0 14px var(--l
 <nav class="nav" aria-label="Sections">
   <div class="nav-in">
     <a href="#" class="nav-logo" id="home" title="Back to the start">Sprint 02</a>
-    <div class="nav-links"><a href="#race">Race</a><a href="#field">Standings</a><a href="#rules">Rules</a></div>
-    <div class="nav-right"><span id="clock">—</span><span class="tag" id="srcTag">Preview</span>
+    <div class="nav-links"><a href="#race">Race</a><a href="#field">Standings</a><a href="#rules">Rules</a><a href="https://leaderboard-dusky-eight.vercel.app/hub">Hub</a></div>
+    <div class="nav-right"><a class="hubtag" href="https://leaderboard-dusky-eight.vercel.app/hub" title="Editing Hub: leaderboard, sprint and winner bonus">Hub</a><span id="clock">—</span><span class="tag" id="srcTag">Preview</span>
       <button class="mycar" id="myCarBtn" type="button" title="Your car" aria-label="Your car"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M3.2 6.6 4.5 3.8C4.8 3.2 5.4 2.8 6.1 2.8h3.8c.7 0 1.3.4 1.6 1l1.3 2.8c.8.2 1.4.9 1.4 1.8v2.8c0 .4-.3.7-.7.7h-.8v.9c0 .4-.3.7-.7.7h-.6c-.4 0-.7-.3-.7-.7v-.9H5v.9c0 .4-.3.7-.7.7h-.6c-.4 0-.7-.3-.7-.7v-.9h-.8c-.4 0-.7-.3-.7-.7V8.4c0-.9.6-1.6 1.4-1.8zm1.5-.1h6.6l-1-2.1c-.1-.3-.4-.4-.7-.4H6.4c-.3 0-.6.2-.7.4zM4.6 10a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8zm6.8 0a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8z"/></svg></button>
       <button class="mode" id="modeBtn" type="button" aria-pressed="false" title="Night mode" aria-label="Night mode"><svg class="i-moon" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.6 10.1A6 6 0 0 1 5.9 2.4a6 6 0 1 0 7.7 7.7z" fill="currentColor"/></svg><svg class="i-sun" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="3" fill="currentColor" stroke="none"/><path d="M8 1.4v1.5M8 13.1v1.5M1.4 8h1.5M13.1 8h1.5M3.3 3.3l1.1 1.1M11.6 11.6l1.1 1.1M3.3 12.7l1.1-1.1M11.6 4.4l1.1-1.1"/></svg><span class="mode-t">Night<span class="mt-x"> mode</span></span></button>
       <div class="mode-hint" id="modeHint" role="status">Race at night: <b>neon lanes, headlights on</b></div></div>
