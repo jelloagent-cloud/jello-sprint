@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <title>Sprint 02 · Jello Editing</title>
-<meta name="description" content="Jello Editing Sprint 02, 12 Oct – 12 Nov 2026: live standings from ClickUp.">
+<meta name="description" content="Jello Editing Sprint 02, 12 Oct – 31 Dec 2026: live standings from ClickUp.">
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -521,7 +521,7 @@ html.night .run .dot{box-shadow:0 0 0 4px rgba(255,255,255,.04),0 0 14px var(--l
       <li>Revisions caused by the Creative Strategist are waived. Message Ben. Ties go to more clean batches, then the faster Ready for Editing → Ready to Launch.</li>
     </ol>
     <hr>
-    <div class="row"><span id="fineWin">Jello Editing · Sprint 02 · 12 Oct – 12 Nov 2026</span><span id="updated">—</span></div>
+    <div class="row"><span id="fineWin">Jello Editing · Sprint 02 · 12 Oct – 31 Dec 2026</span><span id="updated">—</span></div>
   </div>
 </footer>
 <script>
@@ -555,7 +555,7 @@ const DEMO=(()=>{
     const list=l.map(b=>{const w=WT[b.format.toLowerCase()],q=Q(b.revs);return{...b,weight:w,quality:q,points:r2(w*b.vc*q)}});
     return{name,list,points:r2(list.reduce((s,b)=>s+b.points,0)),batches:list.length,clean:list.filter(b=>b.revs===0).length,avgTatH:48+name.length*3};
   }).sort((a,b)=>b.points-a.points||b.clean-a.clean);
-  return{sprint:{name:'Sprint 02',start:Date.UTC(2026,9,11,22),end:Date.UTC(2026,10,12,23)},editors:eds,updated:Date.now(),demo:true};
+  return{sprint:{name:'Sprint 02',start:Date.UTC(2026,9,11,22),end:Date.UTC(2026,11,31,23)},editors:eds,updated:Date.now(),demo:true};
 })();
 let D=DEMO,LAY=null;
 
