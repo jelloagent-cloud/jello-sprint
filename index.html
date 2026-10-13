@@ -34,9 +34,28 @@ button{font:inherit;color:inherit;letter-spacing:inherit}
 .grad{background:var(--spectrum);-webkit-background-clip:text;background-clip:text;color:transparent}
 .chev::after{content:"";display:inline-block;width:.42em;height:.42em;border-right:1.6px solid currentColor;border-top:1.6px solid currentColor;transform:rotate(45deg);margin-left:.32em;vertical-align:.12em}
 
-/* ───────── START: one frosted-glass button on black ───────── */
-.intro{position:fixed;inset:0;z-index:60;background:#000;display:grid;place-items:center;padding:16px;transition:opacity .45s var(--ease),visibility 0s}
-.intro.out{opacity:0;visibility:hidden;transition:opacity .45s var(--ease),visibility 0s linear .45s}
+/* ───────── CODE POP-UP: no start screen any more — the race shows right away. First visit (or the car button in the
+   top bar) opens this: the frosted code pill over the dimmed page. Spectate / ✕ / Esc closes it. ───────── */
+.intro{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.62);-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter:blur(18px) saturate(140%);
+  display:grid;place-items:center;padding:16px;opacity:0;visibility:hidden;transition:opacity .35s var(--ease),visibility 0s linear .35s}
+.intro.open{opacity:1;visibility:visible;transition:opacity .35s var(--ease),visibility 0s}
+.intro .i-stack{transform:translateY(14px) scale(.98);transition:transform .55s var(--ease)}
+.intro.open .i-stack{transform:none}
+.i-title{margin:0;font-size:clamp(24px,3vw,34px);font-weight:700;letter-spacing:-.03em;line-height:1.1;color:#fff;text-align:center;transition:opacity .35s}
+.intro.hello .i-title{opacity:0}
+.i-x{position:absolute;top:16px;right:16px;width:40px;height:40px;border:0;border-radius:50%;padding:0;display:grid;place-items:center;cursor:pointer;color:#fff;
+  background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);transition:background .2s}
+.i-x:hover{background:rgba(255,255,255,.18)} .i-x svg{width:15px;height:15px}
+.intro .i-brand{display:none}   /* the top bar shows through the blur already */
+/* while the standings load (ClickUp can take a few seconds on a cold start) the race area says so */
+.loader{position:absolute;left:50%;top:50%;z-index:3;display:grid;justify-items:center;gap:4px;padding:16px 28px;border-radius:999px;transform:translate(-50%,-50%);
+  background:rgba(255,255,255,.72);box-shadow:inset 0 0 0 1px rgba(255,255,255,.9),0 16px 40px -20px rgba(0,0,0,.3);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  opacity:0;pointer-events:none;transition:opacity .45s var(--ease)}
+.stage.loading .loader{opacity:1}
+.loader b{font-size:17px;font-weight:600;letter-spacing:-.02em;animation:breathe 1.3s ease-in-out infinite}
+.loader small{font-size:12px;color:#86868b}
+html.night .loader{background:rgba(28,28,32,.72);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);color:#f5f5f7}
+.lanes .lanes-wait{color:#86868b;font-size:15px;text-align:center;padding:28px 0;animation:breathe 1.3s ease-in-out infinite}
 .i-brand{position:absolute;left:28px;top:24px;margin:0;font-size:14px;font-weight:600;letter-spacing:-.01em;color:#48484a}
 .glass{position:relative;display:grid;place-items:center;width:min(600px,88vw);height:clamp(112px,13vw,164px);border:0;border-radius:999px;padding:0;cursor:pointer;overflow:hidden;isolation:isolate;
   background:radial-gradient(120% 140% at 50% 0%,rgba(255,255,255,.07),rgba(255,255,255,.015) 60%),#060608;
@@ -168,7 +187,7 @@ button{font:inherit;color:inherit;letter-spacing:inherit}
   background:linear-gradient(90deg,#2f7bff,#b45cff);box-shadow:0 6px 20px rgba(60,90,255,.35);white-space:nowrap;opacity:0;transition:opacity .3s}
 .you.on{opacity:1}
 .you::after{content:"";position:absolute;left:50%;bottom:-4px;width:8px;height:8px;margin-left:-4px;background:#7a6cff;transform:rotate(45deg);border-radius:1px}
-.mycar{display:none;width:28px;height:28px;border:0;border-radius:50%;padding:0;place-items:center;cursor:pointer;background:rgba(0,0,0,.06);color:var(--ink);transition:background .3s}
+.mycar{display:none;position:relative;width:28px;height:28px;border:0;border-radius:50%;padding:0;place-items:center;cursor:pointer;background:rgba(0,0,0,.06);color:var(--ink);transition:background .3s}
 .mycar:hover{background:rgba(0,0,0,.1)}.mycar svg{width:16px;height:16px}
 .mycar.on{display:grid}
 .nav-logo,#clock{white-space:nowrap}
@@ -404,16 +423,17 @@ html.night .run .dot{box-shadow:0 0 0 4px rgba(255,255,255,.04),0 0 14px var(--l
 <body>
 
 
-<div class="intro" id="intro" aria-label="Sprint 02 start">
+<div class="intro" id="intro" role="dialog" aria-modal="true" aria-labelledby="iTitle">
   <p class="i-brand">Jello Editing · Sprint 02</p>
+  <button class="i-x" id="iClose" type="button" aria-label="Close"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg></button>
   <div class="i-stack">
+    <h2 class="i-title" id="iTitle">Enter your code</h2>
     <p class="i-hello" id="iHello" aria-live="polite"></p>
-    <button class="glass" id="enter" type="button"><span class="g-blob b1"></span><span class="g-blob b2"></span><span class="g-blob b3"></span><span class="g-grain"></span><span class="g-label">Enter the race</span><span class="g-code" id="gCode" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
+    <button class="glass" id="enter" type="button"><span class="g-blob b1"></span><span class="g-blob b2"></span><span class="g-blob b3"></span><span class="g-grain"></span><span class="g-label">Your code</span><span class="g-code" id="gCode" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
     <input class="code-in" id="codeIn" type="text" maxlength="6" autocomplete="one-time-code" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="go" aria-label="Your code" tabindex="-1">
     <p class="i-sub" id="iSub"></p>
     <button class="i-watch" id="iWatch" type="button" title="Watch the race without a code"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M1.8 10S5 4.2 10 4.2 18.2 10 18.2 10 15 15.8 10 15.8 1.8 10 1.8 10z"/><circle cx="10" cy="10" r="2.7"/></svg>Spectate</button>
   </div>
-  <div class="i-wipe" id="wipe" aria-hidden="true"></div>
 </div>
 
 <div class="garage" id="garage" role="dialog" aria-modal="true" aria-label="Build your car">
@@ -434,7 +454,7 @@ html.night .run .dot{box-shadow:0 0 0 4px rgba(255,255,255,.04),0 0 14px var(--l
 
 <nav class="nav" aria-label="Sections">
   <div class="nav-in">
-    <a href="#" class="nav-logo" id="home" title="Back to the start">Sprint 02</a>
+    <a href="#race" class="nav-logo" id="home" title="Back to the race">Sprint 02</a>
     <div class="nav-links"><a href="#race">Race</a><a href="#field">Standings</a><a href="#rules">Rules</a><a href="https://leaderboard-dusky-eight.vercel.app/hub">Hub</a></div>
     <div class="nav-right"><a class="hubtag" href="https://leaderboard-dusky-eight.vercel.app/hub" title="Editing Hub: leaderboard, sprint and winner bonus">Hub</a><span id="clock">—</span><span class="tag" id="srcTag">Preview</span>
       <button class="mycar" id="myCarBtn" type="button" title="Your car" aria-label="Your car"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M3.2 6.6 4.5 3.8C4.8 3.2 5.4 2.8 6.1 2.8h3.8c.7 0 1.3.4 1.6 1l1.3 2.8c.8.2 1.4.9 1.4 1.8v2.8c0 .4-.3.7-.7.7h-.8v.9c0 .4-.3.7-.7.7h-.6c-.4 0-.7-.3-.7-.7v-.9H5v.9c0 .4-.3.7-.7.7h-.6c-.4 0-.7-.3-.7-.7v-.9h-.8c-.4 0-.7-.3-.7-.7V8.4c0-.9.6-1.6 1.4-1.8zm1.5-.1h6.6l-1-2.1c-.1-.3-.4-.4-.7-.4H6.4c-.3 0-.6.2-.7.4zM4.6 10a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8zm6.8 0a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8z"/></svg></button>
@@ -444,7 +464,8 @@ html.night .run .dot{box-shadow:0 0 0 4px rgba(255,255,255,.04),0 0 14px var(--l
 </nav>
 
 <main>
-  <section class="stage" id="race">
+  <section class="stage loading" id="race">
+    <div class="loader" id="loader" role="status"><b>Loading the race…</b><small>Live from ClickUp</small></div>
     <canvas id="stage" aria-label="The race from above: one lane and one car per editor, the leader in front. Click a car to follow it."></canvas>
     <div class="lead-card" id="leadCard">
       <p class="lc-eye rv grad">In the lead</p>
@@ -478,7 +499,7 @@ html.night .run .dot{box-shadow:0 0 0 4px rgba(255,255,255,.04),0 0 14px var(--l
       <h2 class="t-h">The standings.</h2>
       <p class="t-sub">Everyone’s in. Click a row for every batch.</p>
     </div>
-    <div class="lanes" id="lanes"></div>
+    <div class="lanes" id="lanes"><p class="lanes-wait">Loading the standings…</p></div>
   </section>
 
   <section class="tile rules" id="rules">
@@ -1150,36 +1171,32 @@ void main(){
 
 /* jump to the top without the page's smooth scrolling (and without the 'instant' option older Safari rejects) */
 function jumpTop(){const h=document.documentElement,s=h.style.scrollBehavior;h.style.scrollBehavior='auto';window.scrollTo(0,0);h.style.scrollBehavior=s}
-/* start: Enter the race → your code → "Welcome, Nils." → the garage → the race.
-   Returning drivers (code remembered on this device) go straight in; "Just watching" skips the code. */
+/* The code pop-up. The race shows right away (no start button); this opens on a first visit when the garage is on and
+   this browser doesn't know who you are yet, and again whenever you tap the car button in the top bar without a code.
+   Code → "Welcome, Nils." → the garage → back to the race, which then follows your car. Spectate / ✕ / Esc closes it,
+   and it won't open on its own again on this device. */
+let POPUP=false;
+const codeSeen=()=>{try{return !!localStorage.getItem('sprint-code-asked')}catch(e){return false}};
 function initIntro(){
   const intro=$('#intro'),btn=$('#enter'),inp=$('#codeIn'),sub=$('#iSub'),slots=[...document.querySelectorAll('#gCode i')];
-  document.body.classList.add('locked');try{history.scrollRestoration='manual'}catch(e){}jumpTop();
   intro.addEventListener('pointermove',e=>{const r=btn.getBoundingClientRect();btn.style.setProperty('--bx',Math.max(-10,Math.min(110,(e.clientX-r.left)/r.width*100)).toFixed(1)+'%')});
-  const label=btn.querySelector('.g-label');
-  const go=()=>{
-    if(!introOn||intro.classList.contains('go'))return;
-    introState='gone';intro.classList.remove('wait','code','me','bad','checking','cw');inp.blur();
-    const r=btn.getBoundingClientRect(),w=$('#wipe'),W0=innerWidth,H0=innerHeight;
-    [['--ct',r.top],['--cr',W0-r.right],['--cb',H0-r.bottom],['--cl',r.left],['--crad',r.height/2]].forEach(([k,v])=>w.style.setProperty(k,v.toFixed(1)+'px'));
-    w.style.setProperty('--wx',btn.style.getPropertyValue('--bx')||'34%');
-    jumpTop();void w.offsetWidth;
-    intro.classList.add('go');
-    setTimeout(()=>{introOn=false;stageStart();intro.classList.add('out');document.body.classList.remove('locked');race();showModeHint()},RM?0:950);
-  };
-  const tap=()=>{
-    if(!introOn||intro.classList.contains('go'))return;
-    if(introState==='code'){inp.focus();return}
-    if(introState!=='idle')return;
-    if(!dataReady){wantGo=true;intro.classList.add('wait');label.textContent='Loading the race…';return}
-    intro.classList.remove('wait');label.textContent='Enter the race';
-    if(GAR.mode==='off'||GAR.me)return go();
+  const show=()=>{
+    if(GX.open)return;
+    POPUP=true;document.body.classList.add('locked');
+    intro.classList.remove('hello','bad','checking');intro.classList.add('open','cw');
     openCode();
   };
+  const go=()=>{   // close the pop-up and go back to the race
+    if(!POPUP)return;POPUP=false;introState='gone';inp.blur();inp.tabIndex=-1;
+    intro.classList.remove('open','code','me','bad','checking','cw');
+    setTimeout(()=>{if(!POPUP)intro.classList.remove('hello')},400);
+    if(!GX.open)document.body.classList.remove('locked');
+    try{localStorage.setItem('sprint-code-asked','1')}catch(e){}
+  };
   function openCode(){
-    introState='code';introMe();intro.classList.remove('me','hello','bad','checking');intro.classList.add('code');
+    introState='code';intro.classList.remove('me','hello','bad','checking');intro.classList.add('code');
     inp.value='';inp.tabIndex=0;$('#iWatch').tabIndex=0;sub.classList.remove('err');sub.textContent='Type the code Ben sent you.';paint();
-    try{inp.focus({preventScroll:true})}catch(e){inp.focus()}
+    setTimeout(()=>{try{inp.focus({preventScroll:true})}catch(e){inp.focus()}},60);
   }
   function paint(){const v=inp.value,on=introState==='code'&&document.activeElement===inp;slots.forEach((s,i)=>{s.textContent=v[i]||'';s.classList.toggle('f',!!v[i]);s.classList.toggle('cur',on&&i===Math.min(5,v.length)&&v.length<6)})}
   inp.addEventListener('input',()=>{inp.value=inp.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);paint();if(inp.value.length===6&&introState==='code')check()});
@@ -1194,31 +1211,29 @@ function initIntro(){
       introState='hello';inp.blur();inp.tabIndex=-1;
       $('#iHello').innerHTML=`<em>Welcome, <span>${esc(res.j.name.split(' ')[0])}</span>.</em>`;
       intro.classList.remove('code');intro.classList.add('hello');introMe();
-      setTimeout(()=>openGarage('intro'),RM?250:1700);
+      setTimeout(()=>openGarage('intro'),RM?250:1500);
       return;
     }
     introState='code';
     if(res.status===401){intro.classList.add('bad');sub.textContent='That code isn’t on the grid. Try again.';setTimeout(()=>{intro.classList.remove('bad');inp.value='';paint()},700)}
     else{sub.classList.add('err');sub.textContent='Can’t check codes right now. Try again in a minute, or just watch.';inp.value='';paint()}
   }
-  goNow=tap;btn.addEventListener('click',tap);
-  $('#iWatch').addEventListener('click',()=>{introState='idle';go()});
+  btn.addEventListener('click',()=>{if(introState==='code')inp.focus()});
+  $('#iWatch').addEventListener('click',go);
+  $('#iClose').addEventListener('click',go);
+  intro.addEventListener('click',e=>{if(e.target===intro&&introState!=='checking'&&introState!=='hello')go()});   // click outside the pill
+  addEventListener('keydown',e=>{if(POPUP&&!GX.open&&e.key==='Escape')go()});
   sub.addEventListener('click',e=>{if(e.target.closest('#notMe')){forgetMe();openCode()}});
-  addEventListener('keydown',e=>{if(introOn&&introState==='idle'&&!GX.open&&(e.key==='Enter'||e.key===' ')&&document.activeElement!==btn){e.preventDefault();tap()}});
-  addEventListener('wheel',e=>{if(introOn&&introState==='idle'&&!GX.open&&e.deltaY>25)tap()},{passive:true});
-  $('#home').addEventListener('click',e=>{e.preventDefault();if(introOn)return;
-    introOn=true;introState='idle';wantGo=false;label.textContent='Enter the race';document.body.classList.add('locked');intro.classList.remove('out','hello','code','bad','checking');introMe();
-    requestAnimationFrame(()=>intro.classList.remove('go'));
-    setTimeout(jumpTop,RM?0:500)});
-  $('#myCarBtn').addEventListener('click',()=>{if(GAR.me)openGarage('page')});
-  INTRO={go,openCode};
+  $('#home').addEventListener('click',e=>{e.preventDefault();window.scrollTo({top:0,behavior:RM?'auto':'smooth'})});
+  $('#myCarBtn').addEventListener('click',()=>{if(GAR.me)openGarage('page');else show()});
+  INTRO={go,openCode,show};
 }
 function introMe(){
-  const intro=$('#intro'),sub=$('#iSub'),on=GAR.mode!=='off'&&!!GAR.me;
-  intro.classList.toggle('cw',dataReady&&GAR.mode!=='off'&&!GAR.me&&(introState==='idle'||introState==='code'||introState==='checking'));
-  if(introState==='idle'){intro.classList.toggle('me',on);sub.innerHTML=on?`as <b>${esc(GAR.me.name.split(' ')[0])}</b> · <button type="button" id="notMe">not you?</button>`:''}
-  $('#myCarBtn').classList.toggle('on',on);
+  const b=$('#myCarBtn'),on=GAR.mode!=='off';
+  b.classList.toggle('on',on);
+  b.title=GAR.me?'Your car':'Enter your code';b.setAttribute('aria-label',b.title);
 }
+function askCode(){ if(GAR.mode!=='off'&&!GAR.me&&!codeSeen()&&INTRO) INTRO.show(); }
 
 /* ───────── the garage: pick a car, colour, wheels and window tint ───────── */
 const GAR={mode:'off',live:false,cars:{},me:null};   // mode: live (API) · demo (preview, this browser only) · off (no garage API yet)
@@ -1285,7 +1300,7 @@ function openGarage(from){
 function closeGarage(toCode){
   const gEl=$('#garage');GX.open=false;gEl.classList.remove('on','busy');
   if(GX.from==='intro'){if(toCode){$('#intro').classList.remove('hello');INTRO.openCode()}else INTRO.go()}
-  else document.body.classList.remove('locked');
+  else{document.body.classList.remove('locked');if(toCode)INTRO.show()}
 }
 async function lockIn(){
   const gEl=$('#garage');if(gEl.classList.contains('busy')||GX.drive>=0||!GAR.me)return;
@@ -1331,22 +1346,24 @@ function gxFrame(now){
   g.globalCompositeOperation='source-over';g.restore();
 }
 
-/* The start button works right away; standings load in the background (ClickUp can take ~10 s on a cold cache).
-   Tapping before they arrive shows "Loading the race…" on the button and opens the moment they land. */
+/* No start screen: the page is there at once and the race starts the moment the standings land (served from cache
+   almost always; a cold ClickUp read can take ~10 s, the race area says "Loading the race…" meanwhile). The code
+   pop-up only waits for the garage, not for the standings. */
 async function boot(){
   initTheme();loadMe();initIntro();initGarage();tick();setInterval(tick,1000);
   const gP=fetchGarage(),wP=fetchWhoami();
-  try{
+  const lP=(async()=>{try{
     const ctl='AbortController' in window?new AbortController():null,to=setTimeout(()=>ctl&&ctl.abort(),25000);
     const r=await fetch('/api/leaderboard?sprint=1',ctl?{signal:ctl.signal}:{});clearTimeout(to);
     if(r.ok){const j=await r.json();if(j&&j.editors&&j.sprint){j.editors=j.editors.map(e=>({...e,list:e.list||[]}));D=j}}
-  }catch(e){}
+  }catch(e){}})();
   await gP;
-  GAR.mode=GAR.live?'live':D.demo?'demo':'off';
-  if(GAR.mode==='live'){const who=await wP;if(who&&(!GAR.me||GAR.me.name!==who)){GAR.me={name:who,code:GAR.me&&GAR.me.name===who?GAR.me.code:''};saveMe()}}
-  if(GAR.mode==='demo')GAR.cars=loadDemoCars();
+  if(GAR.live){GAR.mode='live';const who=await wP;if(who&&(!GAR.me||GAR.me.name!==who)){GAR.me={name:who,code:GAR.me&&GAR.me.name===who?GAR.me.code:''};saveMe()}introMe();askCode()}
+  await lP;
+  if(!GAR.live){GAR.mode=D.demo?'demo':'off';if(GAR.mode==='demo')GAR.cars=loadDemoCars();introMe();askCode()}
   render();dataReady=true;tick();introMe();
-  if(wantGo)goNow();
+  introOn=false;stageStart();race();showModeHint();
+  $('#race').classList.remove('loading');
 }
 boot();
 })();
